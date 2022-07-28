@@ -8,4 +8,6 @@ require (
 	golang.org/x/text v0.3.7
 )
 
+retract v1.0.0
+
 require gopkg.in/sourcemap.v1 v1.0.5 // indirect

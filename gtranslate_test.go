@@ -2,6 +2,7 @@ package gtranslate
 
 import (
 	"context"
+	"reflect"
 	"testing"
 
 	"golang.org/x/text/language"
@@ -9,21 +10,20 @@ import (
 
 func TestTranslate(t *testing.T) {
 	type test struct {
-		text   string
+		text   []string
 		source language.Tag
 		target language.Tag
-		want   string
+		want   []string
 	}
 
 	tests := []test{
-		{"Hello World!", language.English, language.Russian, "Привет, мир!"},
-		{"Hello World!", language.English, language.German, "Hallo Welt!"},
-		{"Привет, мир!", language.Russian, language.Ukrainian, "Привіт світ!"},
+		{[]string{"Hello World!", "Test sentence"}, language.English, language.Russian, []string{"Привет, мир!", "Тестовое предложение"}},
+		{[]string{"Привет, мир!", "Тестовая строка"}, language.Russian, language.Ukrainian, []string{"Привіт світ!", "Тестовий рядок"}},
 	}
 	ctx := context.Background()
 	for _, tc := range tests {
 		got, _ := Translate(ctx, tc.text, tc.source, tc.target)
-		if tc.want != got {
+		if !reflect.DeepEqual(tc.want, got) {
 			t.Fatalf("expected: %v, got: %v", tc.want, got)
 		}
 	}
