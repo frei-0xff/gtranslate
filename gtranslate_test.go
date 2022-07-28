@@ -17,8 +17,8 @@ func TestTranslate(t *testing.T) {
 	}
 
 	tests := []test{
-		{[]string{"Hello World!", "Test sentence"}, language.English, language.Russian, []string{"Привет, мир!", "Тестовое предложение"}},
-		{[]string{"Привет, мир!", "Тестовая строка"}, language.Russian, language.Ukrainian, []string{"Привіт світ!", "Тестовий рядок"}},
+		{[]string{"Hello from Translate test!", "Test sentence"}, language.English, language.Russian, []string{"Привет из теста переводчика!", "Тестовое предложение"}},
+		{[]string{"Привет из теста переводчика!", "Тестовая строка"}, language.Russian, language.Ukrainian, []string{"Привіт із тесту перекладача!", "Тестовий рядок"}},
 	}
 	ctx := context.Background()
 	for _, tc := range tests {

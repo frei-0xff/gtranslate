@@ -17,7 +17,7 @@ go get github.com/frei-0xff/gtranslate
 ```go
 import "github.com/frei-0xff/gtranslate"
 ctx := context.Background()
-results, err := gtranslate.Translate(ctx, []string{"Hello World!"}, language.English, language.French)
+results, err := gtranslate.Translate(ctx, []string{"Sample sentence."}, language.English, language.French)
 ```
 
 
@@ -36,7 +36,7 @@ import (
 )
 
 func main() {
-	inputs := []string{"Hello World!", "What a wonderful world!"}
+	inputs := []string{"Sample sentence.", "What a wonderful world!"}
 	ctx := context.Background()
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(time.Second*5))
 	defer cancel()
