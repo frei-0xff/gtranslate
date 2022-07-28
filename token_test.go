@@ -1,4 +1,4 @@
-package main
+package gtranslate
 
 import (
 	"strconv"
@@ -28,17 +28,6 @@ func TestCrypt(t *testing.T) {
 		{num: "1565124136", op: "+-a^+6", want: "-2031023056"},
 		{num: "-2031022848", op: "+-a^+6", want: "1242143028"},
 		{num: "1242143218", op: "+-a^+6", want: "1907401845"},
-		{num: "1907402053", op: "+-a^+6", want: "882159520"},
-		{num: "882159698", op: "+-a^+6", want: "-2058833997"},
-		{num: "-2058833789", op: "+-a^+6", want: "-1431660943"},
-		{num: "-1431660767", op: "+-a^+6", want: "1414727501"},
-		{num: "1414727710", op: "+-a^+6", want: "-1561178594"},
-		{num: "-1561178451", op: "+-a^+6", want: "1839052455"},
-		{num: "1839052487", op: "+-a^+6", want: "-404147828"},
-		{num: "-404147619", op: "+-a^+6", want: "-1904186172"},
-		{num: "-1904186043", op: "+-a^+6", want: "-1837803712"},
-		{num: "-1837803503", op: "+-a^+6", want: "1716177505"},
-		{num: "1716177635", op: "+-a^+6", want: "-1825337416"},
 	}
 
 	for _, tc := range tests {
@@ -75,7 +64,7 @@ func FuzzCrypt(f *testing.F) {
 	})
 }
 
-func TestGetTK(t *testing.T) {
+func TestGenTk(t *testing.T) {
 	type test struct {
 		text string
 		ctkk string
@@ -90,14 +79,14 @@ func TestGetTK(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		got := getTK(tc.text, tc.ctkk)
+		got, _ := genTk(tc.text, tc.ctkk)
 		if tc.want != got {
 			t.Fatalf("expected: %v, got: %v", tc.want, got)
 		}
 	}
 }
 
-func FuzzGetTk(f *testing.F) {
+func FuzzGenTk(f *testing.F) {
 	f.Add("Тестовая строка", int32(460817), int32(1766927921)) // Use f.Add to provide a seed corpus
 	f.Fuzz(func(t *testing.T, text string, t1, t2 int32) {
 		if !utf8.ValidString(text) {
@@ -111,7 +100,7 @@ func FuzzGetTk(f *testing.F) {
 			}
 		}
 		ctkk := strconv.FormatInt(int64(t1), 10) + "." + strconv.FormatInt(int64(t2), 10)
-		res := getTK(text, ctkk)
+		res, _ := genTk(text, ctkk)
 		vm.Set("text", text)
 		vm.Set("ctkk", ctkk)
 		jsRes, _ := vm.Run(`

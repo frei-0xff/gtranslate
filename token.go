@@ -1,12 +1,10 @@
-package main
+package gtranslate
 
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -21,12 +19,12 @@ func init() {
 	gc = gcache.New(1).LRU().Build()
 }
 
-func getCTKK(ctx context.Context) (string, error) {
+func fetchCTKK(ctx context.Context) (string, error) {
 	ctkk, err := gc.Get("ctkk")
 	if err == nil {
 		return ctkk.(string), nil
 	}
-	req, err := http.NewRequest("GET", "https://translate.google.com/translate_a/element.js", nil)
+	req, err := http.NewRequest(http.MethodGet, "https://translate.google.com/translate_a/element.js", nil)
 	if err != nil {
 		return "", err
 	}
@@ -78,54 +76,10 @@ func crypt(num, op string) string {
 	return strconv.FormatInt(int64(iNum), 10)
 }
 
-func getTK(text, ctkk string) string {
-	/*
-			function Dn(text, ctkk) {
-		  console.log(text, ctkk);
-		  var parts = ctkk.split(".");
-		  var t = Number(parts[0]) || 0;
-		  var buf = [];
-		  var j = 0;
-		  var i = 0;
-		  for (; i < text.length; i++) {
-		    var ch = text.charCodeAt(i);
-		    if (128 > ch) {
-		      buf[j++] = ch;
-		    } else {
-		      if (2048 > ch) {
-		        buf[j++] = ch >> 6 | 192;
-		      } else {
-		        if (55296 == (ch & 64512) && i + 1 < text.length && 56320 == (text.charCodeAt(i + 1) & 64512)) {
-		          ch = 65536 + ((ch & 1023) << 10) + (text.charCodeAt(++i) & 1023);
-		          buf[j++] = ch >> 18 | 240;
-		          buf[j++] = ch >> 12 & 63 | 128;
-		        } else {
-		          buf[j++] = ch >> 12 | 224;
-		        }
-		        buf[j++] = ch >> 6 & 63 | 128;
-		      }
-		      buf[j++] = ch & 63 | 128;
-		    }
-		  }
-		  text = t;
-		  j = 0;
-		  for (; j < buf.length; j++) {
-		    text = text + buf[j];
-		    text = Cn(text, "+-a^+6");
-		  }
-		  text = Cn(text, "+-3^+b+-f");
-		  text = text ^ (Number(parts[1]) || 0);
-		  if (0 > text) {
-		    text = (text & 2147483647) + 2147483648;
-		  }
-		  parts = text % 1E6;
-		  return parts.toString() + "." + (parts ^ t);
-		}
-	*/
-	fmt.Println(text, ctkk)
+func genTk(text, ctkk string) (string, error) {
 	parts := strings.Split(ctkk, ".")
 	if len(parts) != 2 {
-		return ""
+		return "", errors.New("Wrong ctkk format")
 	}
 	p1, _ := strconv.ParseInt(parts[0], 10, 32)
 	rText := []rune(text)
@@ -178,21 +132,17 @@ func getTK(text, ctkk string) string {
 		intText = int64((uint32(intText) & 2147483647) + 2147483648)
 	}
 	mod := intText % 1e6
-	return strconv.FormatInt(mod, 10) + "." + strconv.FormatInt(mod^p1, 10)
+	return strconv.FormatInt(mod, 10) + "." + strconv.FormatInt(mod^p1, 10), nil
 }
 
-func translate(ctx context.Context, text string) (string, error) {
-	ctkk, err := getCTKK(ctx)
+func generateToken(ctx context.Context, text string) (string, error) {
+	ctkk, err := fetchCTKK(ctx)
 	if err != nil {
 		return "", err
 	}
-	tk := getTK(text, ctkk)
-	resp, err := http.PostForm("https://translate.googleapis.com/translate_a/t?anno=3&client=te_lib&format=html&v=1.0&key&logld=vTE_20220719&sl=ru&tl=uk&tc=1&dom=1&sr=1&tk="+tk+"&mode=1",
-		url.Values{"q": {text}})
+	token, err := genTk(text, ctkk)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	return string(body), nil
+	return token, nil
 }
