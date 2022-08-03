@@ -35,14 +35,11 @@ func Translate(ctx context.Context, inputs []string, source language.Tag, target
 	data.Set("sl", source.String())
 	data.Set("tl", target.String())
 	data.Set("tk", tk)
-	encodedData := data.Encode()
 	for i := range inputs {
-		q := url.Values{}
-		q.Set("q", inputs[i])
-		encodedData += "&" + q.Encode()
+		data.Add("q", inputs[i])
 	}
 
-	req, err := http.NewRequest(http.MethodPost, "https://translate.googleapis.com/translate_a/t?client=te", strings.NewReader(encodedData))
+	req, err := http.NewRequest(http.MethodPost, "https://translate.googleapis.com/translate_a/t?client=te", strings.NewReader(data.Encode()))
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	if err != nil {
 		return nil, err
